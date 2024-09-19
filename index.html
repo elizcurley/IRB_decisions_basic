@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRB Decision and Guidance Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .question, .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+        }
+        .progress {
+            width: 0;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 3px;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IRB Decision and Guidance Tool for Behavioral Research</h1>
+        
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+
+        <div id="questionContainer">
+            <div class="question" id="q1">
+                <h2>1. Does your research involve human subjects?</h2>
+                <button onclick="answer('q1', 'yes')">Yes</button>
+                <button onclick="answer('q1', 'no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 7;
+
+        function updateProgress() {
+            const progressPercentage = (currentStep / totalSteps) * 100;
+            document.getElementById('progress').style.width = progressPercentage + '%';
+        }
+
+        function answer(questionId, response) {
+            currentStep++;
+            updateProgress();
+
+            if (questionId === 'q1') {
+                if (response === 'yes') {
+                    showNextQuestion('q2', "2. Does your research involve vulnerable populations?");
+                } else {
+                    showInfo("Your research may not require IRB approval. However, please consult with your institution's IRB office for confirmation.");
+                }
+            } else if (questionId === 'q2') {
+                if (response === 'yes') {
+                    showNextQuestion('q3', "3. What type of vulnerable population does your research involve?");
+                } else {
+                    showNextQuestion('q4', "4. What is the potential risk level for participants?");
+                }
+            } else if (questionId === 'q3') {
+                showInfo("Research involving vulnerable populations often requires full IRB review. Please prepare a detailed protocol describing safeguards for protecting these participants.");
+                showNextQuestion('q4', "4. What is the potential risk level for participants?");
+            } else if (questionId === 'q4') {
+                if (response === 'minimal') {
+                    showInfo("Your study may qualify for expedited review. Prepare your protocol focusing on how you'll maintain minimal risk.");
+                } else {
+                    showInfo("Your study will likely require full IRB review. Prepare a comprehensive protocol detailing risk mitigation strategies.");
+                }
+                showNextQuestion('q5', "5. Have you completed the required ethics training for researchers?");
+            } else if (questionId === 'q5') {
+                if (response === 'yes') {
+                    showNextQuestion('q6', "6. Are you ready to submit your initial IRB application?");
+                } else {
+                    showInfo("Please complete the required ethics training before proceeding with your IRB application.");
+                    showNextQuestion('q6', "6. Are you ready to submit your initial IRB application?");
+                }
+            } else if (questionId === 'q6') {
+                if (response === 'yes') {
+                    showInfo("Great! Submit your application through your institution's IRB system. Expect to receive feedback or approval in 4-6 weeks.");
+                    showNextQuestion('q7', "7. Did you receive any requests for revisions from the IRB?");
+                } else {
+                    showInfo("Take your time to prepare a thorough application. Consider consulting with colleagues or your advisor before submission.");
+                }
+            } else if (questionId === 'q7') {
+                if (response === 'yes') {
+                    showInfo("Carefully address each point in the IRB's feedback. Be thorough in your responses and revise your protocol as necessary. Resubmit your revised application promptly.");
+                } else {
+                    showInfo("Congratulations! You can now proceed with your research as approved. Remember to submit any modifications or adverse events to the IRB if they occur during your study.");
+                }
+                showConclusion();
+            }
+        }
+
+        function showNextQuestion(id, text) {
+            document.getElementById('questionContainer').innerHTML += `
+                <div class="question" id="${id}">
+                    <h2>${text}</h2>
+                    ${id === 'q3' ? `
+                        <button onclick="answer('${id}', 'children')">Children</button>
+                        <button onclick="answer('${id}', 'prisoners')">Prisoners</button>
+                        <button onclick="answer('${id}', 'pregnant')">Pregnant Women</button>
+                        <button onclick="answer('${id}', 'other')">Other</button>
+                    ` : id === 'q4' ? `
+                        <button onclick="answer('${id}', 'minimal')">Minimal Risk</button>
+                        <button onclick="answer('${id}', 'greater')">Greater than Minimal Risk</button>
+                    ` : `
+                        <button onclick="answer('${id}', 'yes')">Yes</button>
+                        <button onclick="answer('${id}', 'no')">No</button>
+                    `}
+                </div>
+            `;
+        }
+
+        function showInfo(text) {
+            document.getElementById('questionContainer').innerHTML += `
+                <div class="info-section">
+                    <p>${text}</p>
+                </div>
+            `;
+        }
+
+        function showConclusion() {
+            document.getElementById('questionContainer').innerHTML += `
+                <div class="info-section">
+                    <h2>Conclusion</h2>
+                    <p>You've completed the IRB guidance process. Remember to:</p>
+                    <ul>
+                        <li>Keep all documentation related to your IRB application and approval.</li>
+                        <li>Conduct your research exactly as approved by the IRB.</li>
+                        <li>Submit any changes to your protocol for IRB review before implementing them.</li>
+                        <li>Report any unanticipated problems or adverse events promptly.</li>
+                        <li>Submit continuing review documents as required by your IRB.</li>
+                    </ul>
+                    <p>Good luck with your research!</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
